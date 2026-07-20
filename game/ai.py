@@ -5,10 +5,10 @@ AI模块 - 人机对战逻辑
 import random
 import time
 from typing import List, Tuple, Optional
-from ..board import Board
-from ..piece import Piece, get_piece_value
-from ..rules import Rules
-from ..game_manager import GameManager
+from .board import Board
+from .piece import Piece, get_piece_value
+from .rules import Rules
+from .game_manager import GameManager
 import config
 
 
