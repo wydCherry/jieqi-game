@@ -158,16 +158,16 @@ def select_piece():
     if not piece or not piece.is_alive:
         return jsonify({'success': False, 'error': '该位置无棋子', 'valid_moves': []}), 400
 
-    # 检查是否是当前玩家的棋子（已翻开的）
-    if piece.is_flipped and piece.color != game_manager.current_player:
-        return jsonify({'success': False, 'error': '不是你的棋子', 'valid_moves': []}), 400
-
-    # 检查暗子选择规则
-    if not piece.is_flipped:
-        if game_manager.current_player == 'red' and row > 4:
-            return jsonify({'success': False, 'error': '红方只能操作红方区域的暗子', 'valid_moves': []}), 400
-        if game_manager.current_player == 'black' and row < 5:
-            return jsonify({'success': False, 'error': '黑方只能操作黑方区域的暗子', 'valid_moves': []}), 400
+    # 检查是否是当前玩家的棋子
+    if piece.is_flipped:
+        # 明子：按颜色判断
+        if piece.color != game_manager.current_player:
+            return jsonify({'success': False, 'error': f'不是你的棋子（当前: {game_manager.current_player}）', 'valid_moves': []}), 400
+    else:
+        # 暗子：按位置判断归属
+        piece_owner = 'red' if row <= 4 else 'black'
+        if piece_owner != game_manager.current_player:
+            return jsonify({'success': False, 'error': f'不能操作对方区域的暗子（当前回合: {game_manager.current_player}, 点击区域: {piece_owner}）', 'valid_moves': []}), 400
 
     # 获取合法移动
     valid_moves = Rules.get_valid_moves(piece, game_manager.board)
@@ -181,7 +181,8 @@ def select_piece():
             'row': piece.row,
             'col': piece.col
         },
-        'valid_moves': [{'row': m[0], 'col': m[1]} for m in valid_moves]
+        'valid_moves': [{'row': m[0], 'col': m[1]} for m in valid_moves],
+        'current_player': game_manager.current_player  # 添加当前玩家信息
     })
 
 
