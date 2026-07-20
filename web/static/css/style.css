@@ -52,6 +52,24 @@ html, body {
     font-weight: bold;
 }
 
+#timer {
+    margin-left: 15px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(139, 90, 43, 0.2);
+}
+
+.timer-warning {
+    color: #FF4500 !important;
+    animation: blink 0.5s infinite;
+    background: rgba(255, 69, 0, 0.2) !important;
+}
+
+.timer-paused {
+    color: #8B5A2B !important;
+    background: rgba(139, 90, 43, 0.3) !important;
+}
+
 #turn-text.red {
     color: #B43232;
 }

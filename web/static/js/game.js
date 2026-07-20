@@ -14,6 +14,13 @@ class JieqiGame {
         this.capturedRed = [];
         this.capturedBlack = [];
 
+        // 倒计时
+        this.turnTimeout = 30;  // 30秒
+        this.remainingTime = 30;
+        this.timerInterval = null;
+        this.isPaused = false;
+        this.warningShown = false;
+
         // Canvas 相关
         this.canvas = document.getElementById('board-canvas');
         this.ctx = this.canvas.getContext('2d');
@@ -43,7 +50,6 @@ class JieqiGame {
     // ==================== 初始化 ====================
 
     initCanvas() {
-        // 根据屏幕大小调整 Canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
     }
@@ -53,7 +59,6 @@ class JieqiGame {
         const maxWidth = container.clientWidth - 20;
         const maxHeight = container.clientHeight - 20;
 
-        // 棋盘比例：宽9列，高10行
         const boardWidth = maxWidth;
         const boardHeight = boardWidth * 10 / 9;
 
@@ -92,6 +97,7 @@ class JieqiGame {
         document.getElementById('btn-undo').addEventListener('click', () => this.undo());
         document.getElementById('btn-hint').addEventListener('click', () => this.showHint());
         document.getElementById('btn-resign').addEventListener('click', () => this.resign());
+        document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
 
         // 菜单按钮
         document.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
@@ -117,14 +123,92 @@ class JieqiGame {
         });
     }
 
+    // ==================== 倒计时 ====================
+
+    startTimer() {
+        this.remainingTime = this.turnTimeout;
+        this.warningShown = false;
+        this.isPaused = false;
+        this.updateTimerDisplay();
+
+        this.timerInterval = setInterval(() => {
+            if (this.isPaused) return;
+
+            this.remainingTime--;
+            this.updateTimerDisplay();
+
+            // 5秒警告
+            if (this.remainingTime === 5 && !this.warningShown) {
+                this.warningShown = true;
+                this.showWarning();
+            }
+
+            // 超时
+            if (this.remainingTime <= 0) {
+                this.handleTimeout();
+            }
+        }, 1000);
+    }
+
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+
+    resetTimer() {
+        this.stopTimer();
+        this.startTimer();
+    }
+
+    updateTimerDisplay() {
+        const timerEl = document.getElementById('timer');
+        timerEl.textContent = `${this.remainingTime}秒`;
+
+        if (this.remainingTime <= 5) {
+            timerEl.className = 'timer-warning';
+        } else {
+            timerEl.className = '';
+        }
+
+        if (this.isPaused) {
+            timerEl.textContent = '已暂停';
+            timerEl.className = 'timer-paused';
+        }
+    }
+
+    togglePause() {
+        if (!this.gameActive) return;
+
+        this.isPaused = !this.isPaused;
+        const btn = document.getElementById('btn-pause');
+        btn.textContent = this.isPaused ? '继续' : '暂停';
+
+        if (this.isPaused) {
+            alert('游戏已暂停，点击"继续"按钮继续');
+        }
+
+        this.updateTimerDisplay();
+    }
+
+    showWarning() {
+        alert('仅剩5秒！请尽快操作！');
+    }
+
+    handleTimeout() {
+        this.stopTimer();
+        const winner = this.currentPlayer === 'red' ? 'black' : 'red';
+        const loser = this.currentPlayer === 'red' ? '红方' : '黑方';
+        this.showGameOver(winner, `${loser}超时`);
+    }
+
     // ==================== API 请求 ====================
 
     async api(url, method = 'GET', data = null) {
         const options = {
             method,
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         };
 
         if (data) {
@@ -148,6 +232,7 @@ class JieqiGame {
             this.updateState(result.state);
             this.hideMenu();
             this.draw();
+            this.startTimer();  // 开始倒计时
         } else {
             alert('开始游戏失败: ' + result.error);
         }
@@ -179,6 +264,7 @@ class JieqiGame {
 
         if (result.success) {
             this.updateState(result.state);
+            this.resetTimer();  // 重置倒计时
 
             // AI 移动动画
             if (result.ai_move) {
@@ -205,6 +291,7 @@ class JieqiGame {
             this.selectedPiece = null;
             this.validMoves = [];
             this.draw();
+            this.resetTimer();  // 重置倒计时
         }
     }
 
@@ -222,6 +309,7 @@ class JieqiGame {
     async resign() {
         if (!confirm('确定要认输吗？')) return;
 
+        this.stopTimer();
         const result = await this.api('/api/resign', 'POST');
 
         if (result.success) {
@@ -253,7 +341,7 @@ class JieqiGame {
         this.capturedRed = state.captured_red || [];
         this.capturedBlack = state.captured_black || [];
 
-        // 更新 UI
+        // 更新回合显示
         const turnText = document.getElementById('turn-text');
         turnText.textContent = this.currentPlayer === 'red' ? '红方回合' : '黑方回合';
         turnText.className = this.currentPlayer;
@@ -265,6 +353,7 @@ class JieqiGame {
 
     checkGameOver(state) {
         if (state.state === 'game_over' && state.winner) {
+            this.stopTimer();
             const winnerText = state.winner === 'red' ? '红方' : '黑方';
             this.showGameOver(state.winner, `${winnerText}胜利！`);
         }
@@ -283,16 +372,13 @@ class JieqiGame {
         const cs = this.cellSize;
         const pd = this.padding;
 
-        // 背景
         ctx.fillStyle = this.colors.boardBg;
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // 外框
         ctx.strokeStyle = this.colors.boardLine;
         ctx.lineWidth = 3;
         ctx.strokeRect(pd - 5, pd - 5, cs * 8 + 10, cs * 9 + 10);
 
-        // 横线
         ctx.lineWidth = 1;
         for (let i = 0; i < 10; i++) {
             ctx.beginPath();
@@ -301,7 +387,6 @@ class JieqiGame {
             ctx.stroke();
         }
 
-        // 竖线（中间断开）
         for (let i = 0; i < 9; i++) {
             if (i === 0 || i === 8) {
                 ctx.beginPath();
@@ -365,7 +450,6 @@ class JieqiGame {
         const y = pd + piece.row * cs;
         const r = cs * 0.42;
 
-        // 背景
         if (piece.flipped) {
             ctx.fillStyle = piece.color === 'red' ? this.colors.pieceRedBg : this.colors.pieceBlackBg;
         } else {
@@ -376,12 +460,10 @@ class JieqiGame {
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
 
-        // 边框
         ctx.strokeStyle = this.colors.boardLine;
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 文字
         const text = piece.flipped ? piece.type : '?';
         ctx.font = `bold ${Math.floor(r * 1.1)}px SimHei`;
         ctx.textAlign = 'center';
@@ -401,7 +483,6 @@ class JieqiGame {
         const cs = this.cellSize;
         const pd = this.padding;
 
-        // 选中棋子高亮
         if (this.selectedPiece) {
             const x = pd + this.selectedPiece.col * cs;
             const y = pd + this.selectedPiece.row * cs;
@@ -414,23 +495,19 @@ class JieqiGame {
             ctx.stroke();
         }
 
-        // 可移动位置
         for (const move of this.validMoves) {
             const x = pd + move.col * cs;
             const y = pd + move.row * cs;
 
-            // 检查目标位置是否有棋子
             const target = this.pieces.find(p => p.row === move.row && p.col === move.col);
 
             if (target) {
-                // 可吃子 - 红色圆环
                 ctx.beginPath();
                 ctx.arc(x, y, cs * 0.45, 0, Math.PI * 2);
                 ctx.strokeStyle = this.colors.capture;
                 ctx.lineWidth = 3;
                 ctx.stroke();
             } else {
-                // 可移动 - 绿色小圆点
                 ctx.beginPath();
                 ctx.arc(x, y, cs * 0.12, 0, Math.PI * 2);
                 ctx.fillStyle = this.colors.highlight;
@@ -442,13 +519,12 @@ class JieqiGame {
     // ==================== 事件处理 ====================
 
     handleClick(e) {
-        if (!this.gameActive) return;
+        if (!this.gameActive || this.isPaused) return;
 
         const rect = this.canvas.getBoundingClientRect();
         const x = (e.clientX || e.pageX) - rect.left;
         const y = (e.clientY || e.pageY) - rect.top;
 
-        // 计算棋盘坐标
         const col = Math.round((x - this.padding) / this.cellSize);
         const row = Math.round((y - this.padding) / this.cellSize);
 
@@ -458,14 +534,11 @@ class JieqiGame {
     }
 
     async handleBoardClick(row, col) {
-        // 检查是否点击了可移动位置
         if (this.selectedPiece && this.validMoves.some(m => m.row === row && m.col === col)) {
-            // 执行移动
             await this.makeMove(this.selectedPiece.row, this.selectedPiece.col, row, col);
             this.selectedPiece = null;
             this.validMoves = [];
         } else {
-            // 选择棋子
             await this.selectPieceAt(row, col);
         }
     }
@@ -473,6 +546,7 @@ class JieqiGame {
     // ==================== UI 辅助 ====================
 
     showMenu() {
+        this.stopTimer();
         document.getElementById('menu-overlay').classList.add('show');
     }
 
@@ -481,6 +555,7 @@ class JieqiGame {
     }
 
     showGameOver(winner, reason) {
+        this.stopTimer();
         const winnerText = winner === 'red' ? '红方' : '黑方';
         document.getElementById('game-result').textContent = `${winnerText}胜利！`;
         document.getElementById('game-reason').textContent = reason;
@@ -498,7 +573,5 @@ let game;
 
 document.addEventListener('DOMContentLoaded', () => {
     game = new JieqiGame();
-
-    // 显示菜单
     game.showMenu();
 });
