@@ -91,12 +91,26 @@ class ChessAI:
     def _get_all_moves(self, board: Board, color: str) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
         """获取所有可能的走法"""
         moves = []
-        pieces = board.get_flipped_pieces(color)
 
-        for piece in pieces:
-            valid_moves = Rules.get_valid_moves(piece, board)
-            for target in valid_moves:
-                moves.append(((piece.row, piece.col), target))
+        # AI 可以操作己方区域的暗子和己方颜色的明子
+        for piece in board.pieces:
+            if not piece.is_alive:
+                continue
+
+            # 判断是否是 AI 可操作的棋子
+            can_operate = False
+            if piece.is_flipped:
+                # 明子：颜色匹配即可操作
+                can_operate = piece.color == color
+            else:
+                # 暗子：按位置判断归属
+                piece_owner = 'red' if piece.row <= 4 else 'black'
+                can_operate = piece_owner == color
+
+            if can_operate:
+                valid_moves = Rules.get_valid_moves(piece, board)
+                for target in valid_moves:
+                    moves.append(((piece.row, piece.col), target))
 
         return moves
 

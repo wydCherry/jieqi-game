@@ -83,6 +83,15 @@ class Rules:
         # 获取走法类型（盲棋用位置类型，明棋用真实类型）
         move_type = piece.position_type
 
+        # 统一处理红黑方称呼
+        # '卒' 和 '兵' 是同类型，'象' 和 '相' 同类型，'士' 和 '仕' 同类型
+        if move_type in ['卒', '兵']:
+            move_type = '兵'
+        elif move_type in ['象', '相']:
+            move_type = '相'
+        elif move_type in ['士', '仕']:
+            move_type = '仕'
+
         # 根据棋子类型获取可能移动位置
         if move_type == '帅':
             moves = Rules._get_king_moves(piece, board)
