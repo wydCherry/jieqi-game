@@ -6,6 +6,7 @@ pygame>=2.5.0
 # Web 版依赖
 flask>=2.3.0
 flask-cors>=4.0.0
+gunicorn>=21.0.0
 
 # 可选：打包工具
 pyinstaller>=6.0.0
