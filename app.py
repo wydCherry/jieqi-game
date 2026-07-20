@@ -98,10 +98,10 @@ def make_move():
             return jsonify({'success': False, 'error': f'不能操作对方区域的暗子（当前: {game_manager.current_player}, 区域: {piece_owner}）'}), 400
 
     game_manager.selected_piece = piece
-    valid_moves = Rules.get_valid_moves(piece, game_manager.board)
+    game_manager.valid_moves = Rules.get_valid_moves(piece, game_manager.board)
 
-    if (to_row, to_col) not in valid_moves:
-        return jsonify({'success': False, 'error': f'非法移动（合法位置: {valid_moves[:5]}...）'}), 400
+    if (to_row, to_col) not in game_manager.valid_moves:
+        return jsonify({'success': False, 'error': f'非法移动（合法位置: {game_manager.valid_moves[:5]}...）'}), 400
 
     # 执行移动
     success = game_manager.make_move(to_row, to_col)
