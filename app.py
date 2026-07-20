@@ -87,21 +87,21 @@ def make_move():
         return jsonify({'success': False, 'error': '该位置无棋子'}), 400
 
     # 检查是否是当前玩家的棋子
-    if piece.is_flipped and piece.color != game_manager.current_player:
-        return jsonify({'success': False, 'error': '不是你的回合'}), 400
-
-    # 检查暗子选择规则
-    if not piece.is_flipped:
-        if game_manager.current_player == 'red' and from_row > 4:
-            return jsonify({'success': False, 'error': '红方只能操作红方区域的暗子'}), 400
-        if game_manager.current_player == 'black' and from_row < 5:
-            return jsonify({'success': False, 'error': '黑方只能操作黑方区域的暗子'}), 400
+    if piece.is_flipped:
+        # 明子：按颜色判断
+        if piece.color != game_manager.current_player:
+            return jsonify({'success': False, 'error': f'不是你的回合（当前: {game_manager.current_player}, 棋子: {piece.color}）'}), 400
+    else:
+        # 暗子：按位置判断归属
+        piece_owner = 'red' if from_row <= 4 else 'black'
+        if piece_owner != game_manager.current_player:
+            return jsonify({'success': False, 'error': f'不能操作对方区域的暗子（当前: {game_manager.current_player}, 区域: {piece_owner}）'}), 400
 
     game_manager.selected_piece = piece
     valid_moves = Rules.get_valid_moves(piece, game_manager.board)
 
     if (to_row, to_col) not in valid_moves:
-        return jsonify({'success': False, 'error': '非法移动'}), 400
+        return jsonify({'success': False, 'error': f'非法移动（合法位置: {valid_moves[:5]}...）'}), 400
 
     # 执行移动
     success = game_manager.make_move(to_row, to_col)
