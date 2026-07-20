@@ -133,7 +133,10 @@ class Rules:
             new_row, new_col = row + dr, col + dc
             if (new_row, new_col) in palace:
                 target = board.get_piece_at(new_row, new_col)
-                if target is None or target.color != piece.color:
+                # 只检查是否有棋子，颜色由 can_attack 过滤
+                if target is None:
+                    moves.append((new_row, new_col))
+                else:
                     moves.append((new_row, new_col))
 
         return moves
@@ -149,8 +152,8 @@ class Rules:
             new_row, new_col = row + dr, col + dc
             if 0 <= new_row <= 9 and 0 <= new_col <= 8:
                 target = board.get_piece_at(new_row, new_col)
-                if target is None or target.color != piece.color:
-                    moves.append((new_row, new_col))
+                # 只检查是否有棋子，颜色由 can_attack 过滤
+                moves.append((new_row, new_col))
 
         return moves
 
@@ -174,10 +177,8 @@ class Rules:
             if eye_piece is not None:
                 continue
 
-            # 检查目标位置
-            target = board.get_piece_at(new_row, new_col)
-            if target is None or target.color != piece.color:
-                moves.append((new_row, new_col))
+            # 只检查是否有棋子，颜色由 can_attack 过滤
+            moves.append((new_row, new_col))
 
         return moves
 
@@ -192,12 +193,12 @@ class Rules:
             new_row, new_col = row + dr, col + dc
             while 0 <= new_row <= 9 and 0 <= new_col <= 8:
                 target = board.get_piece_at(new_row, new_col)
+                # 空位可以移动
                 if target is None:
                     moves.append((new_row, new_col))
-                elif target.color != piece.color:
-                    moves.append((new_row, new_col))
-                    break
                 else:
+                    # 有棋子，可以尝试攻击，然后停止
+                    moves.append((new_row, new_col))
                     break
                 new_row += dr
                 new_col += dc
@@ -235,10 +236,8 @@ class Rules:
             if leg_piece is not None:
                 continue
 
-            # 检查目标位置
-            target = board.get_piece_at(new_row, new_col)
-            if target is None or target.color != piece.color:
-                moves.append((new_row, new_col))
+            # 只检查是否有棋子，颜色由 can_attack 过滤
+            moves.append((new_row, new_col))
 
         return moves
 
@@ -267,8 +266,8 @@ class Rules:
                 else:
                     # 已经遇到炮架，只能吃子
                     if target is not None:
-                        if target.color != piece.color:
-                            moves.append((new_row, new_col))
+                        # 可以尝试攻击，颜色由 can_attack 过滤
+                        moves.append((new_row, new_col))
                         break
 
                 new_row += dr
@@ -308,9 +307,8 @@ class Rules:
         for dr, dc in [(forward, 0), (0, -1), (0, 1)]:
             new_row, new_col = row + dr, col + dc
             if 0 <= new_row <= 9 and 0 <= new_col <= 8:
-                target = board.get_piece_at(new_row, new_col)
-                if target is None or target.color != piece.color:
-                    moves.append((new_row, new_col))
+                # 只检查是否在棋盘内，颜色由 can_attack 过滤
+                moves.append((new_row, new_col))
 
         return moves
 
