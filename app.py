@@ -50,6 +50,10 @@ def new_game():
 
     game_manager.start_game(mode)
 
+    # 人机对战：玩家执黑方先手，AI执红方后手
+    if mode == 'pve':
+        game_manager.current_player = 'black'  # 黑方（玩家）先手
+
     return jsonify({
         'success': True,
         'state': get_board_state()
