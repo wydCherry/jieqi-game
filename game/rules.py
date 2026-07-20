@@ -14,6 +14,58 @@ class Rules:
     BLACK_PALACE = [(7, 3), (7, 4), (7, 5), (8, 3), (8, 4), (8, 5), (9, 3), (9, 4), (9, 5)]
 
     @staticmethod
+    def get_piece_owner(piece) -> str:
+        """
+        获取棋子的表面归属（用于判断是否可以攻击）
+        已翻开的棋子：返回真实颜色
+        未翻开的暗子：根据位置判断归属（红方区域=row 0-4，黑方区域=row 5-9）
+        """
+        if piece.is_flipped:
+            return piece.color
+        # 未翻开的暗子根据位置判断
+        return 'red' if piece.row <= 4 else 'black'
+
+    @staticmethod
+    def can_attack(attacker, target) -> bool:
+        """
+        判断攻击者是否可以攻击目标
+
+        规则：
+        1. 空位可以移动
+        2. 明子攻击：
+           - 不能攻击己方颜色的明子
+           - 不能攻击己方区域的暗子
+        3. 暗子攻击（在己方区域）：
+           - 不能攻击己方区域的暗子
+           - 不能攻击己方颜色的明子
+        """
+        # 空位可以移动
+        if target is None:
+            return True
+
+        # 获取攻击者的表面归属
+        attacker_owner = Rules.get_piece_owner(attacker)
+
+        if attacker.is_flipped:
+            # 明子攻击：按颜色判断归属
+            if target.is_flipped:
+                # 目标是明子：不能攻击己方颜色的明子
+                return target.color != attacker.color
+            else:
+                # 目标是暗子：不能攻击己方区域的暗子
+                target_area = 'red' if target.row <= 4 else 'black'
+                return target_area != attacker.color
+        else:
+            # 暗子攻击：按位置判断归属
+            if target.is_flipped:
+                # 目标是明子：不能攻击己方颜色的明子
+                return target.color != attacker_owner
+            else:
+                # 目标是暗子：不能攻击己方区域的暗子
+                target_area = 'red' if target.row <= 4 else 'black'
+                return target_area != attacker_owner
+
+    @staticmethod
     def get_valid_moves(piece, board) -> List[Tuple[int, int]]:
         """
         获取棋子所有合法移动位置
@@ -50,9 +102,16 @@ class Rules:
             moves = []
 
         # 过滤掉会导致己方帅将被吃的位置
-        valid_moves = []
+        safe_moves = []
         for pos in moves:
             if Rules._is_safe_move(piece, pos, board):
+                safe_moves.append(pos)
+
+        # 过滤掉不能攻击的目标
+        valid_moves = []
+        for pos in safe_moves:
+            target = board.get_piece_at(pos[0], pos[1])
+            if Rules.can_attack(piece, target):
                 valid_moves.append(pos)
 
         return valid_moves
@@ -219,17 +278,33 @@ class Rules:
 
     @staticmethod
     def _get_soldier_moves(piece, board) -> List[Tuple[int, int]]:
-        """获取兵/卒的移动位置"""
+        """
+        获取兵/卒的移动位置
+
+        规则：
+        - 红兵向前是row增加（向下）
+        - 黑卒向前是row减少（向上）
+        - 未翻开的暗子：根据位置判断（红方区域=row 0-4按红兵规则，黑方区域=row 5-9按黑卒规则）
+        """
         moves = []
         row, col = piece.row, piece.col
 
-        # 红兵向上走，黑卒向下走
-        if piece.color == 'red':
-            forward = -1
+        # 根据棋子真实颜色判断前进方向（已翻开的明子）
+        # 未翻开的暗子根据位置判断
+        if piece.is_flipped:
+            # 已翻开：根据真实颜色判断
+            if piece.color == 'red':
+                forward = 1  # 红兵向前是row增加（向下）
+            else:
+                forward = -1  # 黑卒向前是row减少（向上）
         else:
-            forward = 1
+            # 未翻开：根据位置判断
+            if row <= 4:
+                forward = 1  # 在红方区域，按红兵规则
+            else:
+                forward = -1  # 在黑方区域，按黑卒规则
 
-        # 前进、左、右
+        # 可以向前、左、右移动
         for dr, dc in [(forward, 0), (0, -1), (0, 1)]:
             new_row, new_col = row + dr, col + dc
             if 0 <= new_row <= 9 and 0 <= new_col <= 8:
