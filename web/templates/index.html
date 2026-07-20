@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>揭棋对战</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- 游戏主界面 -->
+    <div id="game-container">
+        <!-- 顶部信息栏 -->
+        <div id="header">
+            <h1>揭棋对战</h1>
+            <div id="turn-info">
+                <span id="turn-text">红方回合</span>
+            </div>
+        </div>
+
+        <!-- 棋盘区域 -->
+        <div id="board-container">
+            <canvas id="board-canvas"></canvas>
+        </div>
+
+        <!-- 底部控制栏 -->
+        <div id="controls">
+            <div id="buttons">
+                <button id="btn-new-game" class="btn btn-primary">新游戏</button>
+                <button id="btn-undo" class="btn">悔棋</button>
+                <button id="btn-hint" class="btn">提示</button>
+                <button id="btn-resign" class="btn btn-danger">认输</button>
+            </div>
+            <div id="game-info">
+                <span id="captured-info">已吃棋子: 红[] 黑[]</span>
+                <span id="move-count">回合: 0</span>
+            </div>
+        </div>
+
+        <!-- 菜单遮罩 -->
+        <div id="menu-overlay" class="show">
+            <div id="menu-panel">
+                <h2>揭棋对战</h2>
+                <p class="subtitle">中国象棋揭棋变体</p>
+                <div class="menu-buttons">
+                    <button class="menu-btn" data-mode="pvp">双人对战</button>
+                    <button class="menu-btn" data-mode="pve" data-difficulty="easy">人机对战 - 简单</button>
+                    <button class="menu-btn" data-mode="pve" data-difficulty="medium">人机对战 - 中等</button>
+                    <button class="menu-btn" data-mode="pve" data-difficulty="hard">人机对战 - 困难</button>
+                    <button class="menu-btn" onclick="location.href='/rules'">游戏规则</button>
+                    <button class="menu-btn" id="btn-leaderboard">排行榜</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏结束弹窗 -->
+        <div id="game-over-modal" class="modal">
+            <div class="modal-content">
+                <h3 id="game-result">游戏结束</h3>
+                <p id="game-reason"></p>
+                <button class="btn btn-primary" id="btn-restart">再来一局</button>
+                <button class="btn" id="btn-back-menu">返回菜单</button>
+            </div>
+        </div>
+
+        <!-- 排行榜弹窗 -->
+        <div id="leaderboard-modal" class="modal">
+            <div class="modal-content">
+                <h3>排行榜</h3>
+                <div id="leaderboard-content">
+                    <p>胜: <span id="wins">0</span> 负: <span id="losses">0</span></p>
+                    <p>胜率: <span id="win-rate">0</span>%</p>
+                </div>
+                <button class="btn" id="btn-close-leaderboard">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/game.js"></script>
+</body>
+</html>

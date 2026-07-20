@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>游戏规则 - 揭棋对战</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="rules-container">
+        <h1>揭棋对战规则</h1>
+
+        <div class="rules-section">
+            <h2>一、基本规则</h2>
+            <ul>
+                <li>棋子反扣随机放置，将帅为明棋</li>
+                <li>未翻开的棋子按位置类型走法移动</li>
+                <li>移动后棋子翻开，显示真实身份</li>
+                <li>翻开后按标准象棋规则走棋</li>
+                <li><strong>士象可以过河</strong>（与标准象棋不同）</li>
+                <li>将死或困毙对方帅将获胜</li>
+                <li>帅将照面判负</li>
+                <li>吃掉对方将帅立即获胜</li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>二、倒计时规则</h2>
+            <ul>
+                <li>每回合30秒倒计时</li>
+                <li>剩余5秒时弹出警告</li>
+                <li>超时未操作判负</li>
+                <li>点击"暂停"按钮可暂停倒计时</li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>三、暗子选择规则</h2>
+            <ul>
+                <li>红方只能操作红方区域（row 0-4）的暗子</li>
+                <li>黑方只能操作黑方区域（row 5-9）的暗子</li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>四、攻击规则</h2>
+            <h3>明子攻击规则（已翻开）</h3>
+            <ul>
+                <li>不能攻击己方颜色的明子（整个棋盘）</li>
+                <li>不能攻击己方区域的暗子</li>
+            </ul>
+            <h3>暗子攻击规则（未翻开）</h3>
+            <ul>
+                <li>不能攻击己方区域的暗子</li>
+                <li>不能攻击己方颜色的明子</li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>五、棋子走法</h2>
+            <table class="rules-table">
+                <tr>
+                    <th>棋子</th>
+                    <th>走法</th>
+                    <th>特殊说明</th>
+                </tr>
+                <tr>
+                    <td>将/帅</td>
+                    <td>九宫内上下左右一格</td>
+                    <td>不能照面</td>
+                </tr>
+                <tr>
+                    <td>士/仕</td>
+                    <td>斜走一格</td>
+                    <td><strong>可过河</strong></td>
+                </tr>
+                <tr>
+                    <td>相/象</td>
+                    <td>走"田"字，塞象眼无效</td>
+                    <td><strong>可过河</strong></td>
+                </tr>
+                <tr>
+                    <td>车/俥</td>
+                    <td>直线任意距离</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>马/傌</td>
+                    <td>走"日"字，蹩马腿无效</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>炮/砲</td>
+                    <td>直线移动；吃子需隔一子</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>兵/卒</td>
+                    <td>向前或左右一格</td>
+                    <td>不能后退</td>
+                </tr>
+            </table>
+
+            <h3>兵/卒移动方向</h3>
+            <ul>
+                <li><strong>已翻开的明子</strong>：按真实颜色判断方向
+                    <ul>
+                        <li>红兵向下（row 增加）</li>
+                        <li>黑卒向上（row 减少）</li>
+                    </ul>
+                </li>
+                <li><strong>未翻开的暗子</strong>：按位置判断方向
+                    <ul>
+                        <li>红方区域（row 0-4）向下</li>
+                        <li>黑方区域（row 5-9）向上</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>六、人机对战规则</h2>
+            <ul>
+                <li>玩家执黑方，玩家先手</li>
+                <li>AI执红方，后手</li>
+                <li>AI有三档难度：简单、中等、困难</li>
+            </ul>
+        </div>
+
+        <div class="rules-section">
+            <h2>七、网络对战说明</h2>
+            <h3>连接条件</h3>
+            <ul>
+                <li>局域网内（连接同一个路由器/WiFi）</li>
+                <li>端口5555未被防火墙阻止</li>
+            </ul>
+            <h3>操作步骤</h3>
+            <ul>
+                <li>创建房间方（红方，先手）：点击"创建房间"，等待对手连接</li>
+                <li>加入房间方（黑方，后手）：输入对方IP，点击"加入房间"</li>
+            </ul>
+            <h3>已知问题</h3>
+            <ul>
+                <li>倒计时各自独立，不同步</li>
+                <li>断线无法重连</li>
+            </ul>
+        </div>
+
+        <div class="rules-nav">
+            <a href="/" class="btn btn-primary">开始游戏</a>
+        </div>
+    </div>
+</body>
+</html>
